@@ -1,0 +1,8 @@
+# DocProc 文件處理服務依賴（Docling 引擎）
+fastapi>=0.115
+uvicorn[standard]>=0.30
+python-multipart>=0.0.9
+docling>=2.0          # 版面/表格/OCR/閱讀順序；金融複雜表格最佳，~2-3GB VRAM
+
+# 備選引擎（繁中密集 + 大顯卡時，放 .94 等較大 GPU，勿與 LLM 同卡搶 VRAM）：
+# mineru               # CJK 密集/公式/多欄最強，需 6-8GB+/峰值 20-25GB
