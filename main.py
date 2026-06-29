@@ -18,13 +18,22 @@ from io import BytesIO
 from fastapi import FastAPI, UploadFile, File, Form
 from fastapi.responses import JSONResponse
 
-from docling.document_converter import DocumentConverter
-from docling.datamodel.base_models import DocumentStream
+from docling.document_converter import DocumentConverter, PdfFormatOption
+from docling.datamodel.base_models import DocumentStream, InputFormat
+from docling.datamodel.pipeline_options import PdfPipelineOptions
 
 app = FastAPI(title="DocProc (Docling)", version="0.2")
 
-# Docling 模型載入一次（重用）
-_converter = DocumentConverter()
+# Docling 模型載入一次（重用）。
+# 關閉 OCR：PCAF 多為原生文字檔，避開 .94 GX10 不支援的 PP-OCRv6 偵測模型；
+# 掃描/無文字層頁會被 build_page_docjson 標 image-needs-ocr，留給 Phase B。
+# 保留表格結構化（金融表格是重點）。
+_pdf_opts = PdfPipelineOptions()
+_pdf_opts.do_ocr = False
+_pdf_opts.do_table_structure = True
+_converter = DocumentConverter(
+    format_options={InputFormat.PDF: PdfFormatOption(pipeline_options=_pdf_opts)}
+)
 
 # 逐頁 job 會對同一份 PDF 多次呼叫 /reconstruct；快取已轉換結果避免重複轉整份。
 _CACHE_MAX = 8
